@@ -75,7 +75,7 @@ class SHUD {
     }
     
     private var backgroundColor: UIColor {
-        return self.style == .light ? UIColor(white: 0.3, alpha: 0.5) : UIColor(white: 0.8, alpha: 0.5)
+        return self.style == .light ? UIColor(white: 0.4, alpha: 0.7) : UIColor(white: 0.8, alpha: 0.7)
     }
 
     private var size: CGSize {
