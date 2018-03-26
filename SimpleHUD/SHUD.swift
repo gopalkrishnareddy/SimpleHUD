@@ -309,7 +309,7 @@ class SHUD {
         return infoImage
     }
     
-    // draw
+    // drawing part is taken from https://github.com/gopalkrishnareddy/HUD
     private class func draw(_ type: SHUDType) {
         let checkmarkShapePath = UIBezierPath()
         // draw circle
