@@ -118,7 +118,7 @@ class SHUD {
         hudView.centerXAnchor.constraint(equalTo: containerView.centerXAnchor).isActive = true
         hudView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor).isActive = true
         
-        widthAnchor = hudView.widthAnchor.constraint(greaterThanOrEqualToConstant: size.width)
+        widthAnchor = hudView.widthAnchor.constraint(equalToConstant: size.width)
         widthAnchor?.isActive = true
         
         heightAnchor = hudView.heightAnchor.constraint(equalToConstant: size.height)
