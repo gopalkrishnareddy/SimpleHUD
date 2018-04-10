@@ -12,7 +12,19 @@ class ViewController: UIViewController {
     @IBAction func showLightHorizontal(_ sender: Any) {
         showHUD(style:.light, alignment: .horizontal, type: .loading, text: "Fetching data...") {
             Delay.by(time: 3) {
-                self.hide()
+                SHUD.updateHUDText("Fetching Projects...")
+                Delay.by(time: 3) {
+                    SHUD.updateHUDText("Fetching Managers...")
+                    Delay.by(time: 3) {
+                        SHUD.updateHUDText("Fetching Leads...")
+                        Delay.by(time: 3) {
+                            SHUD.updateHUDText("Fetching Roles...")
+                            Delay.by(time: 3) {
+                                self.hideHUD()
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -20,7 +32,7 @@ class ViewController: UIViewController {
     @IBAction func showLightVertical(_ sender: Any) {
         showHUD(style:.light, alignment: .vertical, type: .loading, text: "Fetching data...") {
             Delay.by(time: 3) {
-                self.hide()
+                self.hideHUD()
             }
         }
     }
@@ -28,7 +40,7 @@ class ViewController: UIViewController {
     @IBAction func showDarkHorizontal(_ sender: Any) {
         showHUD(style:.dark, alignment: .horizontal, type: .loading, text: "Fetching data...") {
             Delay.by(time: 3) {
-                self.hide()
+                self.hideHUD()
             }
         }
     }
@@ -36,23 +48,23 @@ class ViewController: UIViewController {
     @IBAction func showDarkVertical(_ sender: Any) {
         showHUD(style:.dark, alignment: .vertical, type: .loading, text: "Fetching data...") {
             Delay.by(time: 3) {
-                self.hide()
+                self.hideHUD()
             }
         }
     }
     
     @IBAction func hideWithSuccess(_ sender: Any) {
-        showHUD(type: .loading, text: "Fetching data...") {
+        showHUD(alignment: .vertical, type: .loading, text: "Fetching data...") {
             Delay.by(time: 3) {
-                self.hide(success: true, text: "Done")
+                self.hideHUD(success: true, text: "Done")
             }
         }
     }
     
     @IBAction func hideWithFailure(_ sender: Any) {
-        showHUD(type: .loading, text: "Fetching data...") {
+        showHUD(style:.light, alignment: .vertical, type: .loading, text: "Fetching data...") {
             Delay.by(time: 3) {
-                self.hide(success: false, text: "Failed")
+                self.hideHUD(success: false, text: "Failed")
             }
         }
     }
@@ -60,7 +72,7 @@ class ViewController: UIViewController {
     @IBAction func hideWithInfo(_ sender: Any) {
         showHUD(type: .info, text: "Good Morning") {
             Delay.by(time: 3) {
-                self.hide()
+                self.hideHUD()
             }
         }
     }
