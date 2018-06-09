@@ -38,11 +38,9 @@ public struct Constants {
 
 class SHUD {
     private static let sharedInstance = SHUD()
-   
     private static var imagesCache = [SHUDType: UIImage]()
 
     private lazy var containerView = UIView()
-    private lazy var containerBlurView = UIVisualEffectView(effect: UIBlurEffect(style: .extraLight))
     private lazy var hudView = UIVisualEffectView(effect: UIBlurEffect(style: .light))
     private lazy var stackView = UIStackView()
     private lazy var activityIndicator = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
@@ -52,7 +50,8 @@ class SHUD {
     private var widthAnchor: NSLayoutConstraint?
     private var heightAnchor: NSLayoutConstraint?
     private var hostView: UIView?
-    
+    private var stackViewVerticalAlignmentConstraints = [NSLayoutConstraint]()
+
     private var style: SHUDStyle = .dark {
         willSet {
             if style != newValue {
@@ -74,8 +73,15 @@ class SHUD {
             DispatchQueue.main.async {
                 self.widthAnchor?.constant = self.size.width
                 self.heightAnchor?.constant = self.size.height
-                self.stackView.axis = self.alignment == .vertical ? .vertical : .horizontal
-                self.label.textAlignment = self.alignment == .vertical ? .center : .left
+                if self.alignment == .vertical {
+                    self.stackView.axis = .vertical
+                    self.label.textAlignment = .center
+                    self.stackViewVerticalAlignmentConstraints.forEach { $0.isActive = true }
+                } else {
+                    self.stackView.axis = .horizontal
+                    self.label.textAlignment = .left
+                    self.stackViewVerticalAlignmentConstraints.forEach { $0.isActive = false }
+                }
             }
         }
     }
@@ -120,8 +126,11 @@ class SHUD {
         
         widthAnchor = hudView.widthAnchor.constraint(equalToConstant: size.width)
         widthAnchor?.isActive = true
-        
-        heightAnchor = hudView.heightAnchor.constraint(equalToConstant: size.height)
+        if self.alignment == .vertical {
+            heightAnchor = hudView.heightAnchor.constraint(greaterThanOrEqualToConstant: size.height)
+        } else {
+            heightAnchor = hudView.heightAnchor.constraint(equalToConstant: size.height)
+        }
         heightAnchor?.isActive = true
 
     }
@@ -135,7 +144,7 @@ class SHUD {
         activityIndicator.translatesAutoresizingMaskIntoConstraints = false
         imageView.translatesAutoresizingMaskIntoConstraints = false
         
-        label.numberOfLines = 1
+        label.numberOfLines = self.alignment == .vertical ? 0 : 1
         label.font = .systemFont(ofSize: Constants.labelFont)
         label.translatesAutoresizingMaskIntoConstraints = false
         
@@ -149,12 +158,15 @@ class SHUD {
         
         stackView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor).isActive = true
         stackView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor).isActive = true
-        
+        self.stackViewVerticalAlignmentConstraints.append(stackView.leadingAnchor.constraint(greaterThanOrEqualTo: contentView.leadingAnchor, constant: 15.0))
+        self.stackViewVerticalAlignmentConstraints.append(stackView.trailingAnchor.constraint(greaterThanOrEqualTo: contentView.trailingAnchor, constant: -15.0))
+        self.stackViewVerticalAlignmentConstraints.append(stackView.topAnchor.constraint(greaterThanOrEqualTo: contentView.topAnchor, constant: 15.0))
+        self.stackViewVerticalAlignmentConstraints.append(stackView.bottomAnchor.constraint(greaterThanOrEqualTo: contentView.bottomAnchor, constant: -15.0))
+
         imageView.widthAnchor.constraint(equalTo: activityIndicator.widthAnchor).isActive = true
         imageView.heightAnchor.constraint(equalTo: activityIndicator.heightAnchor).isActive = true
         imageView.centerXAnchor.constraint(equalTo: activityIndicator.centerXAnchor).isActive = true
         imageView.centerYAnchor.constraint(equalTo: activityIndicator.centerYAnchor).isActive = true
-
     }
     
     fileprivate func configureHUD(forType type: SHUDType) {
@@ -221,10 +233,6 @@ class SHUD {
     }
     
     @objc fileprivate func handleOrientationChange(_ notification: Notification) {
-        defer {
-            containerBlurView.frame = containerView.bounds
-        }
-        
         if let hostView = hostView {
             containerView.frame = hostView.bounds
         } else if let window = UIApplication.shared.windows.first {
@@ -301,13 +309,14 @@ struct Delay {
 }
 
 extension SHUD {
-    open static func show(_ onView: UIView? = nil, style: SHUDStyle = .dark, alignment: SHUDAlignment = .horizontal, type: SHUDType = .loading, text: String?, _ completion: (() -> Swift.Void)? = nil) {
+    open static func show(_ onView: UIView? = nil, style: SHUDStyle = .dark, alignment: SHUDAlignment = .vertical, type: SHUDType = .loading, text: String?, _ completion: (() -> Swift.Void)? = nil) {
         let hud = SHUD.sharedInstance
         hud.style = style
         hud.alignment = alignment
         hud.hostView = onView
         hud.registerDeviceOrientationNotification()
-        
+        hud.label.numberOfLines = alignment == .vertical ? 0 : 1
+
         hud.configureHUD(forType: type)
         if let text = text {
             hud.updateText(text)
@@ -324,6 +333,7 @@ extension SHUD {
             } else {
                 guard let window = UIApplication.shared.windows.first else { return }
                 window.addSubview(hud.containerView)
+                window.isUserInteractionEnabled = false
             }
             
             hud.hudView.alpha = 0.0
@@ -352,6 +362,7 @@ extension SHUD {
                 hud.containerView.alpha = 0.0
                 hud.hudView.transform = CGAffineTransform(scaleX: 0.1, y: 0.1)
             }){ _ in
+                hud.containerView.superview?.isUserInteractionEnabled = true
                 hud.containerView.alpha = 1.0
                 hud.containerView.removeFromSuperview()
                 hud.hudView.transform = .identity
